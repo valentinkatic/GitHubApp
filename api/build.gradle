@@ -1,0 +1,62 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion ver.compileSdkVersion
+    compileOptions {
+        sourceCompatibility ver.sourceCompatibility
+        targetCompatibility ver.targetCompatibility
+    }
+    kotlinOptions {
+        jvmTarget = ver.kotlinJvmTarget
+    }
+    defaultConfig {
+        minSdkVersion ver.minSdkVersion
+        targetSdkVersion ver.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        debug {
+            // enable logging (Log.DEBUG and other) flags
+            buildConfigField 'boolean', 'LOG', 'true'
+        }
+        release {
+            // disable logging (Log.DEBUG and other) flags
+            // log statements will be stripped out by the compiler
+            buildConfigField 'boolean', 'LOG', 'false'
+
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${ver.kotlin}"
+    implementation "androidx.core:core-ktx:${ver.kotlin_core_ktx}"
+
+    api "io.reactivex.rxjava2:rxjava:${ver.rxjava}"
+    api "io.reactivex.rxjava2:rxandroid:${ver.rxjava_android}"
+
+    api "com.squareup.retrofit2:retrofit:${ver.retrofit}"
+    api "com.squareup.retrofit2:converter-scalars:${ver.retrofit}"
+    api "com.squareup.retrofit2:converter-moshi:${ver.retrofit}"
+    api "com.squareup.retrofit2:adapter-rxjava2:${ver.retrofit}"
+    api "com.squareup.okhttp3:logging-interceptor:${ver.retrofit_okhttp}"
+
+    implementation "com.squareup.moshi:moshi:${ver.moshi}"
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:${ver.moshi}"
+
+    testImplementation "junit:junit:${ver.junit_test}"
+//    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
+//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+}

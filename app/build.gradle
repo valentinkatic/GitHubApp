@@ -1,0 +1,52 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+android {
+    compileSdkVersion ver.compileSdkVersion
+    compileOptions {
+        sourceCompatibility ver.sourceCompatibility
+        targetCompatibility ver.targetCompatibility
+    }
+    kotlinOptions {
+        jvmTarget = ver.kotlinJvmTarget
+    }
+    defaultConfig {
+        applicationId "com.katic.githubapp"
+        minSdkVersion ver.minSdkVersion
+        targetSdkVersion ver.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':api')
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${ver.kotlin}"
+    implementation "androidx.core:core-ktx:${ver.kotlin_core_ktx}"
+
+    implementation "androidx.appcompat:appcompat:${ver.appcompat}"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${ver.lifecycle}"
+    implementation "androidx.constraintlayout:constraintlayout:${ver.constraintlayout}"
+    implementation "androidx.recyclerview:recyclerview:${ver.recyclerview}"
+
+    implementation "com.github.bumptech.glide:glide:${ver.glide}"
+    implementation ("com.github.bumptech.glide:okhttp3-integration:${ver.glide}"){
+        exclude group: 'glide-parent'
+    }
+    kapt "com.github.bumptech.glide:compiler:${ver.glide}"
+
+    testImplementation "junit:junit:${ver.junit_test}"
+//    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+}
