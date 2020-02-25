@@ -3,6 +3,8 @@ package com.katic.githubapp.ui.search
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageView
@@ -18,13 +20,14 @@ import com.katic.api.model.Repository
 import com.katic.api.model.User
 import com.katic.githubapp.R
 import com.katic.githubapp.appComponent
+import com.katic.githubapp.ui.login.LoginFragment
 import com.katic.githubapp.ui.repositorydetails.RepositoryDetailsActivity
 import com.katic.githubapp.ui.userdetails.UserDetailsActivity
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
 import kotlinx.android.synthetic.main.activity_search.*
 
-class SearchActivity : AppCompatActivity(), SearchAdapter.Listener {
+class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragment.Listener {
 
     companion object {
         private val log = Log.getLog("SearchActivity")
@@ -35,6 +38,7 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener {
     }
 
     private lateinit var searchAdapter: SearchAdapter
+    private var loginAction: MenuItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -135,6 +139,34 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener {
             })
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        loginAction = menu?.findItem(R.id.login)
+        if (!appComponent.serviceInterceptor.token.isNullOrEmpty()) {
+            loginAction!!.title = "My profile"
+        }
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (progressBar.isVisible) {
+            return false
+        }
+        return when (item.itemId) {
+            R.id.login -> {
+                if (appComponent.serviceInterceptor.token.isNullOrEmpty()) {
+                    val fragment = LoginFragment()
+                    fragment.show(supportFragmentManager, null)
+                } else {
+                    val intent = Intent(this, UserDetailsActivity::class.java)
+                    startActivity(intent)
+                }
+                true
+            }
+            else -> false
+        }
+    }
+
     //
     // SearchAdapter.Listener
     //
@@ -157,4 +189,13 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener {
     override fun fetchRepositoriesNext() {
         viewModel.fetchRepositoriesNext()
     }
+
+    //
+    // LoginFragment.Listener
+    //
+
+    override fun onSuccess() {
+        loginAction!!.title = "My profile"
+    }
+
 }

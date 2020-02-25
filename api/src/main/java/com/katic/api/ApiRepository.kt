@@ -33,4 +33,6 @@ class ApiRepository(private val service: ApiService) {
     fun fetchUser(user: String): Single<User> =
         service.fetchUserDetails(user)
 
+    fun fetchCurrentUser(): Single<User> =
+        service.fetchCurrentUser()
 }

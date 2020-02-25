@@ -1,8 +1,8 @@
 package com.katic.api
 
-import com.katic.api.model.User
 import com.katic.api.model.RepositoriesResponse
 import com.katic.api.model.Repository
+import com.katic.api.model.User
 import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -35,5 +35,8 @@ interface ApiService {
 
     @GET("/users/{user}")
     fun fetchUserDetails(@Path("user") user: String): Single<User>
+
+    @GET("/user")
+    fun fetchCurrentUser(): Single<User>
 
 }

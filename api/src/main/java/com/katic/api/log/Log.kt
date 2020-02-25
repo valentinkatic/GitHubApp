@@ -106,7 +106,7 @@ class Log(val tag: String, private val mLogger: Logger?) {
         return android.util.Log.w(tag, tr)
     }
 
-    fun e(msg: String?): Int {
+    fun e(msg: String): Int {
         if (JAVA_LOG_READY && mLogger != null) {
             mLogger.log(Level.SEVERE, msg)
         }
@@ -207,10 +207,8 @@ class Log(val tag: String, private val mLogger: Logger?) {
             if (JAVA_LOG_READY) {
                 val handlers =
                     Logger.getLogger("").handlers
-                if (handlers != null) {
-                    for (handler in handlers) {
-                        handler.flush()
-                    }
+                for (handler in handlers) {
+                    handler.flush()
                 }
             }
         }

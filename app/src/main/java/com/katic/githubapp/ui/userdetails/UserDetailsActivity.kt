@@ -1,9 +1,11 @@
 package com.katic.githubapp.ui.userdetails
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
+import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -13,6 +15,7 @@ import com.katic.api.model.User
 import com.katic.githubapp.R
 import com.katic.githubapp.appComponent
 import com.katic.githubapp.ui.common.GlideApp
+import com.katic.githubapp.ui.search.SearchActivity
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
 import kotlinx.android.synthetic.main.activity_user_details.*
@@ -28,6 +31,7 @@ class UserDetailsActivity : AppCompatActivity() {
     private val viewModel by viewModelProvider {
         UserDetailsViewModel(
             appComponent.apiRepository,
+            appComponent.serviceInterceptor,
             intent.getStringExtra(EXTRA_USER_ID)
         )
     }
@@ -90,11 +94,31 @@ class UserDetailsActivity : AppCompatActivity() {
         url.highlightColor = Color.TRANSPARENT
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            finish()
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        if (intent.getStringExtra(EXTRA_USER_ID) == null && !appComponent.serviceInterceptor.token.isNullOrEmpty()) {
+            menuInflater.inflate(R.menu.menu_user_details, menu)
             return true
         }
-        return super.onOptionsItemSelected(item)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (progressBar.isVisible) {
+            return false
+        }
+        return when (item.itemId) {
+            android.R.id.home -> {
+                finish()
+                true
+            }
+            R.id.logout -> {
+                viewModel.logout()
+                val intent = Intent(this, SearchActivity::class.java)
+                startActivity(intent)
+                finishAffinity()
+                true
+            }
+            else -> false
+        }
     }
 }
