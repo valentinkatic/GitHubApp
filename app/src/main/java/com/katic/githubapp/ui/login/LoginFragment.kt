@@ -2,6 +2,7 @@ package com.katic.githubapp.ui.login
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -72,8 +73,8 @@ class LoginFragment : DialogFragment() {
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 if (Log.LOG) log.d("onPageStarted: $url")
-                if (url?.contains("code=") == true) {
-                    val code = url.substring(url.indexOf("code=") + 5)
+                val code = extractAuthorizationCode(url)
+                if (!code.isNullOrEmpty()) {
                     if (Log.LOG) log.d("code: $code")
                     viewModel.fetchToken(code)
                 } else {
@@ -91,6 +92,11 @@ class LoginFragment : DialogFragment() {
         webView.loadUrl("https://github.com/login/oauth/authorize?client_id=1a884e38444ceda41fb7")
 
         observeViewModel()
+    }
+
+    fun extractAuthorizationCode(authorizationCodeResponseUrl: String?): String? {
+        val uri = Uri.parse(authorizationCodeResponseUrl)
+        return uri.getQueryParameter("code")
     }
 
     private fun observeViewModel() {
