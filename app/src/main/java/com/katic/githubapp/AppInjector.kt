@@ -11,8 +11,8 @@ import com.katic.githubapp.util.ServiceInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.scalars.ScalarsConverterFactory
 
 class AppInjector(context: Context) {
 
@@ -51,7 +51,7 @@ class AppInjector(context: Context) {
         val retrofit = Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(BASE_URL)
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
         retrofit.create(ApiService::class.java)
@@ -61,7 +61,7 @@ class AppInjector(context: Context) {
         val retrofit = Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(BASE_LOGIN_URL)
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
         retrofit.create(AuthService::class.java)

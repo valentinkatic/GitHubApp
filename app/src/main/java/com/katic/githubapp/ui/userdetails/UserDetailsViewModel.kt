@@ -4,14 +4,15 @@ import android.webkit.CookieManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.katic.api.ApiRepository
 import com.katic.api.log.Log
 import com.katic.api.model.User
 import com.katic.githubapp.util.LoadingResult
 import com.katic.githubapp.util.ServiceInterceptor
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import com.katic.githubapp.util.runCatchCancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class UserDetailsViewModel(
     private val apiRepository: ApiRepository,
@@ -26,7 +27,7 @@ class UserDetailsViewModel(
     val userResult: LiveData<LoadingResult<User>> get() = _userResult
     private val _userResult = MutableLiveData<LoadingResult<User>>()
 
-    private var userDisposable: Disposable? = null
+    private var userJob: Job? = null
 
     init {
         if (Log.LOG) log.d("init")
@@ -37,24 +38,27 @@ class UserDetailsViewModel(
     private fun fetchUser() {
         if (Log.LOG) log.d("fetchUser: $user")
 
-        userDisposable?.dispose()
+        userJob?.cancel()
 
-        userDisposable =
-            (if (user == null) apiRepository.fetchCurrentUser() else apiRepository.fetchUser(user))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { user ->
-                        if (Log.LOG) log.d("user: $user")
-                        // signal to observers that operation is done
-                        _userResult.value = LoadingResult.loaded(user)
-                    },
-                    { throwable ->
-                        if (Log.LOG) log.e("fetchUser", throwable)
-                        // signal to observers that operation ended in error
-                        _userResult.value = LoadingResult.exception(_userResult.value, throwable)
-                    }
-                )
+        userJob = viewModelScope.launch {
+            runCatchCancel(
+                run = {
+                    val user = (if (user == null) apiRepository.fetchCurrentUser() else apiRepository.fetchUser(user))
+                    if (Log.LOG) log.d("user: $user")
+                    // signal to observers that operation is done
+                    _userResult.value = LoadingResult.loaded(user)
+                },
+                catch = {
+                    t ->
+                    if (Log.LOG) log.e("fetchUser", t)
+                    // signal to observers that operation ended in error
+                    _userResult.value = LoadingResult.exception(_userResult.value, t)
+                },
+                cancel = {
+                    if (Log.LOG) log.i("fetchUser canceled")
+                }
+            )
+        }
     }
 
     fun logout() {
@@ -66,7 +70,7 @@ class UserDetailsViewModel(
 
     override fun onCleared() {
         if (Log.LOG) log.d("onCleared")
-        userDisposable?.dispose()
+        super.onCleared()
     }
 
 }

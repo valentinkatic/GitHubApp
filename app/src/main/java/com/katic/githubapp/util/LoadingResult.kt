@@ -1,8 +1,9 @@
 package com.katic.githubapp.util
 
-import io.reactivex.Observable
-import io.reactivex.observers.DisposableSingleObserver
-import io.reactivex.subjects.BehaviorSubject
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.Observer
 
 /**
  * Generic class with status [isLoading], [data]: [T] and/or [exception].
@@ -64,33 +65,74 @@ class LoadingResult<T>(val isLoading: Boolean, val data: T?, private var excepti
         fun <T> exception(previous: LoadingResult<T>?, exception: Throwable): LoadingResult<T> {
             return LoadingResult(false, previous?.data, exception)
         }
+    }
+}
 
-        fun <T> singleToSubject(subject: BehaviorSubject<LoadingResult<T>>): DisposableSingleObserver<T> {
-            return object : DisposableSingleObserver<T>() {
-                override fun onSuccess(newData: T) {
-                    subject.onNext(loaded(newData))
-                }
-
-                override fun onError(e: Throwable) {
-                    subject.onNext(exception(subject.value, e))
-                }
+/**
+ * Extension function for [LiveData] which returns new LiveData that filters out consumed loaded results.
+ */
+fun <Y, T : LoadingResult<Y>> LiveData<T>.filterConsumedLoaded(observerId: Int): LiveData<T> =
+    FilterMediatorLiveData(this) {
+        when {
+            it.consumed.contains(observerId) -> false // filter out if already consumed by this observer
+            it.isLoaded -> {
+                // mark consumed
+                it.consumed.add(observerId)
+                // return true to pass it once
+                true
             }
+            else -> true // pass it
+        }
+    }
+
+/**
+ * [MediatorLiveData] that emits data from source but filters them through [filter]
+ * before delivering to attached observer.
+ */
+private class FilterMediatorLiveData<T>(source: LiveData<T>, private val filter: (T) -> Boolean) :
+    MediatorLiveData<T>() {
+
+    init {
+        // connect it to original LiveData and pass values
+        addSource(source) { value -> this.value = value }
+    }
+
+    private val filtersMap: MutableMap<Observer<in T>, FilterObserver<in T>> = mutableMapOf()
+
+    override fun observe(owner: LifecycleOwner, observer: Observer<in T>) {
+        // wrap given observer in our FilterObserver to filter emitted data
+        val filter = FilterObserver(observer, filter)
+        super.observe(owner, filter)
+        filtersMap[observer] = filter
+    }
+
+    override fun observeForever(observer: Observer<in T>) {
+        // wrap given observer in our FilterObserver to filter emitted data
+        val filter = FilterObserver(observer, filter)
+        super.observeForever(filter)
+        filtersMap[observer] = filter
+    }
+
+    override fun removeObserver(observer: Observer<in T>) {
+        // we need to remove our wrapper FilterObserver
+        // and also remove it as observer
+        filtersMap.remove(observer)?.also {
+            super.removeObserver(it)
         }
     }
 }
 
 /**
- * Extension function for [Observable] which filters out consumed loaded results.
+ * [Observer] that wraps [delegate] observer and filters emitted data through [filter].
  */
-fun <Y, T: LoadingResult<Y>> Observable<T>.filterConsumedLoaded(observerId: Int): Observable<T> = filter {
-    when {
-        it.consumed.contains(observerId) -> false // filter out if already consumed by this observer
-        it.isLoaded -> {
-            // mark consumed
-            it.consumed.add(observerId)
-            // return true to pass it once
-            true
+private class FilterObserver<T>(
+    private val delegate: Observer<in T>,
+    private val filter: (T) -> Boolean
+) : Observer<T> {
+    override fun onChanged(t: T) {
+        if (filter(t)) {
+            delegate.onChanged(t)
         }
-        else -> true // pass it
     }
+
 }

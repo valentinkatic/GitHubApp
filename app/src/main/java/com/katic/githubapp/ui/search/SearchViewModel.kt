@@ -3,13 +3,14 @@ package com.katic.githubapp.ui.search
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.katic.api.ApiRepository
 import com.katic.api.ApiService
 import com.katic.api.log.Log
 import com.katic.githubapp.util.LoadingResult
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import com.katic.githubapp.util.runCatchCancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class SearchViewModel(private val apiRepository: ApiRepository) : ViewModel() {
 
@@ -22,7 +23,7 @@ class SearchViewModel(private val apiRepository: ApiRepository) : ViewModel() {
     private val _searchResult =
         MutableLiveData<LoadingResult<ApiRepository.RepositoriesPaginator>>()
 
-    private var searchDisposable: Disposable? = null
+    private var searchJob: Job? = null
 
     /** List of sort keys. */
     val sortItems = listOf(
@@ -36,7 +37,8 @@ class SearchViewModel(private val apiRepository: ApiRepository) : ViewModel() {
     /** Fetch repositories. */
     fun fetchRepositories(query: String?) {
         if (Log.LOG) log.d("fetchRepositories: query: $query")
-        searchDisposable?.dispose()
+
+        searchJob?.cancel()
 
         // signal to observers that loading is in progress
         _searchResult.value = LoadingResult.loading(_searchResult.value)
@@ -68,30 +70,33 @@ class SearchViewModel(private val apiRepository: ApiRepository) : ViewModel() {
     private fun fetchRepositories(paginator: ApiRepository.RepositoriesPaginator) {
         if (Log.LOG) log.d("fetchRepositories: $paginator")
 
-        searchDisposable?.dispose()
+        searchJob?.cancel()
 
-        searchDisposable = apiRepository.fetchRepositories(paginator)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { pg ->
+        searchJob = viewModelScope.launch {
+            runCatchCancel(
+                run = {
+                    val pg = apiRepository.fetchRepositories(paginator)
                     if (Log.LOG) log.d("fetchRepositories: $pg")
                     // add loaded repo to all repos
                     pg.allItems.addAll(pg.loadedItems)
                     // signal to observers that operation is done
                     _searchResult.value = LoadingResult.loaded(pg)
                 },
-                { throwable ->
-                    if (Log.LOG) log.e("fetchRepositories", throwable)
+                catch = { t ->
+                    if (Log.LOG) log.e("fetchRepositories", t)
                     // signal to observers that operation ended in error
-                    _searchResult.value = LoadingResult.exception(_searchResult.value, throwable)
+                    _searchResult.value = LoadingResult.exception(_searchResult.value, t)
+                },
+                cancel = {
+                    if (Log.LOG) log.i("fetchRepositories canceled")
                 }
             )
+        }
     }
 
     override fun onCleared() {
         if (Log.LOG) log.d("onCleared")
-        searchDisposable?.dispose()
+        super.onCleared()
     }
 
 }

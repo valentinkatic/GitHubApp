@@ -13,6 +13,7 @@ import android.text.style.ClickableSpan
 import android.view.View
 import androidx.core.content.ContextCompat.startActivity
 import com.katic.api.log.Log
+import kotlinx.coroutines.CancellationException
 import org.json.JSONObject
 import retrofit2.HttpException
 import java.util.concurrent.Callable
@@ -87,6 +88,27 @@ class UiUtils {
             val browserIntent =
                 Intent(Intent.ACTION_VIEW, Uri.parse(url))
             context.startActivity(browserIntent)
+        }
+    }
+}
+
+/**
+ * Runs [run] block and calls [catch] block if [run] throws exception
+ * or calls [cancel] block if coroutine is canceled
+ * (if [CancellationException]) is thrown.
+ */
+suspend inline fun runCatchCancel(
+    run: () -> Unit,
+    catch: (t: Throwable) -> Unit,
+    cancel: (() -> Unit)
+) {
+    try {
+        run()
+    } catch (t: Throwable) {
+        if (t !is CancellationException) {
+            catch(t)
+        } else {
+            cancel()
         }
     }
 }

@@ -3,13 +3,14 @@ package com.katic.githubapp.ui.repositorydetails
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.katic.api.ApiRepository
 import com.katic.api.log.Log
 import com.katic.api.model.Repository
 import com.katic.githubapp.util.LoadingResult
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import com.katic.githubapp.util.runCatchCancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.lang.Exception
 
 class RepositoryDetailsViewModel(
@@ -25,7 +26,7 @@ class RepositoryDetailsViewModel(
     val repoResult: LiveData<LoadingResult<Repository>> get() = _repoResult
     private val _repoResult = MutableLiveData<LoadingResult<Repository>>()
 
-    private var repoDisposable: Disposable? = null
+    private var repoJob: Job? = null
 
     init {
         if (Log.LOG) log.d("init")
@@ -36,7 +37,7 @@ class RepositoryDetailsViewModel(
     private fun fetchRepo() {
         if (Log.LOG) log.d("fetchRepo: $user, $repo")
 
-        repoDisposable?.dispose()
+        repoJob?.cancel()
 
         if (user == null || repo == null) {
             _repoResult.value =
@@ -44,26 +45,29 @@ class RepositoryDetailsViewModel(
             return
         }
 
-        repoDisposable = apiRepository.fetchRepository(user, repo)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { repository ->
+        repoJob = viewModelScope.launch {
+            runCatchCancel(
+                run = {
+                    val repository = apiRepository.fetchRepository(user, repo)
                     if (Log.LOG) log.d("repository: $repository")
                     // signal to observers that operation is done
                     _repoResult.value = LoadingResult.loaded(repository)
                 },
-                { throwable ->
-                    if (Log.LOG) log.e("fetchRepo", throwable)
+                catch = { t ->
+                    if (Log.LOG) log.e("fetchRepo", t)
                     // signal to observers that operation ended in error
-                    _repoResult.value = LoadingResult.exception(_repoResult.value, throwable)
+                    _repoResult.value = LoadingResult.exception(_repoResult.value, t)
+                },
+                cancel = {
+                    if (Log.LOG) log.i("fetchRepo canceled")
                 }
             )
+        }
     }
 
     override fun onCleared() {
         if (Log.LOG) log.d("onCleared")
-        repoDisposable?.dispose()
+        super.onCleared()
     }
 
 }

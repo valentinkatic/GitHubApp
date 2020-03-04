@@ -2,7 +2,6 @@ package com.katic.api
 
 import com.katic.api.model.Repository
 import com.katic.api.model.User
-import io.reactivex.Single
 
 class ApiRepository(private val service: ApiService) {
 
@@ -15,24 +14,24 @@ class ApiRepository(private val service: ApiService) {
         val allItems: MutableList<Repository> = ArrayList()
     )
 
-    fun fetchRepositories(paginator: RepositoriesPaginator): Single<RepositoriesPaginator> =
-        service.fetchRepositories(
+    suspend fun fetchRepositories(paginator: RepositoriesPaginator): RepositoriesPaginator {
+        val repositoriesResponse = service.fetchRepositories(
             query = paginator.query,
             sort = paginator.sort,
             perPage = paginator.limit,
             page = paginator.allItems.size / paginator.limit + 1
-        ).map {
-            paginator.totalCount = it.totalCount
-            paginator.loadedItems = it.items
-            paginator
-        }
+        )
+        paginator.totalCount = repositoriesResponse.totalCount
+        paginator.loadedItems = repositoriesResponse.items
+        return paginator
+    }
 
-    fun fetchRepository(user: String, repo: String): Single<Repository> =
+    suspend fun fetchRepository(user: String, repo: String): Repository =
         service.fetchRepository(user, repo)
 
-    fun fetchUser(user: String): Single<User> =
+    suspend fun fetchUser(user: String): User =
         service.fetchUserDetails(user)
 
-    fun fetchCurrentUser(): Single<User> =
+    suspend fun fetchCurrentUser(): User =
         service.fetchCurrentUser()
 }

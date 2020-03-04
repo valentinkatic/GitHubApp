@@ -11,8 +11,9 @@ buildscript {
         ver.minSdkVersion = 21
         ver.targetSdkVersion = 29
 
-        ver.kotlin = '1.3.61'
+        ver.kotlin = "1.3.61"
         ver.kotlin_core_ktx = "1.2.0"
+        ver.kotlin_coroutines = "1.3.3"
 
         ver.appcompat = "1.2.0-alpha02"
         ver.lifecycle = "2.2.0"
