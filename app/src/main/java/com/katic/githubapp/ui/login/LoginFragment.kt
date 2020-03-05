@@ -13,9 +13,9 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
 import com.katic.githubapp.R
 import com.katic.githubapp.appComponent
+import com.katic.githubapp.databinding.LoginFragmentBinding
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
-import kotlinx.android.synthetic.main.login_fragment.*
 import timber.log.Timber
 
 class LoginFragment : DialogFragment() {
@@ -24,6 +24,8 @@ class LoginFragment : DialogFragment() {
         fun onSuccess()
     }
 
+    private var _viewBinder: LoginFragmentBinding? = null
+    private val viewBinder get() = _viewBinder!!
     private val viewModel by viewModelProvider {
         LoginViewModel(
             appComponent.authRepository,
@@ -59,14 +61,14 @@ class LoginFragment : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.login_fragment, container, false)
+        _viewBinder = LoginFragmentBinding.inflate(inflater, container, false)
+        return viewBinder.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        webView.webViewClient = object : WebViewClient() {
+        viewBinder.webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 Timber.d("onPageStarted: $url")
                 val code = extractAuthorizationCode(url)
@@ -84,10 +86,15 @@ class LoginFragment : DialogFragment() {
             }
         }
 
-        closeButton.setOnClickListener { dismiss() }
-        webView.loadUrl("https://github.com/login/oauth/authorize?client_id=1a884e38444ceda41fb7")
+        viewBinder.closeButton.setOnClickListener { dismiss() }
+        viewBinder.webView.loadUrl("https://github.com/login/oauth/authorize?client_id=1a884e38444ceda41fb7")
 
         observeViewModel()
+    }
+
+    override fun onDestroyView() {
+        _viewBinder = null
+        super.onDestroyView()
     }
 
     fun extractAuthorizationCode(authorizationCodeResponseUrl: String?): String? {
@@ -100,13 +107,13 @@ class LoginFragment : DialogFragment() {
             .observe(this, Observer {
                 Timber.d("tokenResult: $it")
                 when {
-                    it.isLoading -> progressBar.show()
+                    it.isLoading -> viewBinder.progressBar.show()
                     it.isError -> {
-                        progressBar.hide()
+                        viewBinder.progressBar.hide()
                         UiUtils.handleUiError(requireActivity(), it.getException(true))
                     }
                     else -> {
-                        progressBar.hide()
+                        viewBinder.progressBar.hide()
                         listener.onSuccess()
                         dismiss()
                     }

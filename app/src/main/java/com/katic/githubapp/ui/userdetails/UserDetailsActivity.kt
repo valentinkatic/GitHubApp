@@ -13,11 +13,11 @@ import com.bumptech.glide.request.RequestOptions
 import com.katic.api.model.User
 import com.katic.githubapp.R
 import com.katic.githubapp.appComponent
+import com.katic.githubapp.databinding.ActivityUserDetailsBinding
 import com.katic.githubapp.ui.common.GlideApp
 import com.katic.githubapp.ui.search.SearchActivity
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
-import kotlinx.android.synthetic.main.activity_user_details.*
 import timber.log.Timber
 import java.util.concurrent.Callable
 
@@ -27,6 +27,7 @@ class UserDetailsActivity : AppCompatActivity() {
         const val EXTRA_USER_ID = "EXTRA_USER_ID"
     }
 
+    private lateinit var viewBinder: ActivityUserDetailsBinding
     private val viewModel by viewModelProvider {
         UserDetailsViewModel(
             appComponent.apiRepository,
@@ -39,7 +40,8 @@ class UserDetailsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_user_details)
+        viewBinder = ActivityUserDetailsBinding.inflate(layoutInflater)
+        setContentView(viewBinder.root)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -51,13 +53,13 @@ class UserDetailsActivity : AppCompatActivity() {
             .observe(this, Observer {
                 Timber.d("repoResult: $it")
                 when {
-                    it.isLoading -> progressBar.show()
+                    it.isLoading -> viewBinder.progressBar.show()
                     it.isError -> {
-                        progressBar.hide()
+                        viewBinder.progressBar.hide()
                         UiUtils.handleUiError(this, it.getException(true))
                     }
                     else -> {
-                        progressBar.hide()
+                        viewBinder.progressBar.hide()
                         user = it.data
                         setUserInfo()
                     }
@@ -72,25 +74,25 @@ class UserDetailsActivity : AppCompatActivity() {
             .apply(RequestOptions.circleCropTransform())
             .placeholder(R.drawable.placeholder)
             .error(R.drawable.placeholder)
-            .into(image)
+            .into(viewBinder.image)
 
-        userTitle.text = user?.login
-        userId.text = "User id: ${user?.id}"
-        repos.text = "Public repositories: ${user?.publicRepos}"
-        followers.text = "Followers: ${user?.followers}"
-        following.text = "Following: ${user?.following}"
-        created.text = "Created: ${user?.created}"
-        updated.text = "Updated: ${user?.updated}"
+        viewBinder.userTitle.text = user?.login
+        viewBinder.userId.text = "User id: ${user?.id}"
+        viewBinder.repos.text = "Public repositories: ${user?.publicRepos}"
+        viewBinder.followers.text = "Followers: ${user?.followers}"
+        viewBinder.following.text = "Following: ${user?.following}"
+        viewBinder.created.text = "Created: ${user?.created}"
+        viewBinder.updated.text = "Updated: ${user?.updated}"
 
-        url.text = UiUtils.getSpannableString(
+        viewBinder.url.text = UiUtils.getSpannableString(
             "Url: ",
             user?.url ?: "",
             Callable {
                 UiUtils.openUrl(this, user!!.url)
             }
         )
-        url.movementMethod = LinkMovementMethod.getInstance()
-        url.highlightColor = Color.TRANSPARENT
+        viewBinder.url.movementMethod = LinkMovementMethod.getInstance()
+        viewBinder.url.highlightColor = Color.TRANSPARENT
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -102,7 +104,7 @@ class UserDetailsActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (progressBar.isVisible) {
+        if (viewBinder.progressBar.isVisible) {
             return false
         }
         return when (item.itemId) {

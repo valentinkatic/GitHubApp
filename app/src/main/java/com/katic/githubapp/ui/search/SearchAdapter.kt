@@ -2,7 +2,6 @@ package com.katic.githubapp.ui.search
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
@@ -12,8 +11,9 @@ import com.bumptech.glide.request.RequestOptions
 import com.katic.api.model.Repository
 import com.katic.api.model.User
 import com.katic.githubapp.R
+import com.katic.githubapp.databinding.LoadingItemBinding
+import com.katic.githubapp.databinding.RepositoryItemBinding
 import com.katic.githubapp.ui.common.GlideApp
-import kotlinx.android.synthetic.main.repository_item.view.*
 
 class SearchAdapter(val listener: Listener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
@@ -30,15 +30,16 @@ class SearchAdapter(val listener: Listener) : RecyclerView.Adapter<RecyclerView.
         setHasStableIds(true)
     }
 
-    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    inner class ViewHolder(itemBinding: RepositoryItemBinding) :
+        RecyclerView.ViewHolder(itemBinding.root) {
 
-        private val parentLayout: ConstraintLayout = view.parentLayout
-        private val thumbnail: ImageView = view.thumbnail
-        private val title: TextView = view.title
-        private val author: TextView = view.author
-        private val watchers: TextView = view.watchers
-        private val forks: TextView = view.forks
-        private val issues: TextView = view.issues
+        private val parentLayout: ConstraintLayout = itemBinding.parentLayout
+        private val thumbnail: ImageView = itemBinding.thumbnail
+        private val title: TextView = itemBinding.title
+        private val author: TextView = itemBinding.author
+        private val watchers: TextView = itemBinding.watchers
+        private val forks: TextView = itemBinding.forks
+        private val issues: TextView = itemBinding.issues
 
         @SuppressLint("SetTextI18n")
         fun bind(position: Int) {
@@ -68,16 +69,15 @@ class SearchAdapter(val listener: Listener) : RecyclerView.Adapter<RecyclerView.
         }
     }
 
-    inner class LoadingViewHolder(view: View) : RecyclerView.ViewHolder(view)
+    inner class LoadingViewHolder(itemBinding: LoadingItemBinding) :
+        RecyclerView.ViewHolder(itemBinding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val view =
-            LayoutInflater.from(parent.context).inflate(
-                if (viewType == TYPE_REPOSITORY) R.layout.repository_item else R.layout.loading_item,
-                parent,
-                false
-            )
-        return if (viewType == TYPE_REPOSITORY) ViewHolder(view) else LoadingViewHolder(view)
+        return if (viewType == TYPE_REPOSITORY) ViewHolder(
+            RepositoryItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        ) else LoadingViewHolder(
+            LoadingItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        )
     }
 
     override fun getItemCount(): Int {

@@ -19,16 +19,17 @@ import com.katic.api.model.Repository
 import com.katic.api.model.User
 import com.katic.githubapp.R
 import com.katic.githubapp.appComponent
+import com.katic.githubapp.databinding.ActivitySearchBinding
 import com.katic.githubapp.ui.login.LoginFragment
 import com.katic.githubapp.ui.repositorydetails.RepositoryDetailsActivity
 import com.katic.githubapp.ui.userdetails.UserDetailsActivity
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
-import kotlinx.android.synthetic.main.activity_search.*
 import timber.log.Timber
 
 class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragment.Listener {
 
+    private lateinit var viewBinder: ActivitySearchBinding
     private val viewModel by viewModelProvider {
         SearchViewModel(appComponent.apiRepository)
     }
@@ -38,13 +39,14 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_search)
+        viewBinder = ActivitySearchBinding.inflate(layoutInflater)
+        setContentView(viewBinder.root)
 
         setupSearchView()
         setupRecycler()
         updateSortText()
 
-        sortByText.setOnClickListener {
+        viewBinder.sortByText.setOnClickListener {
             showSortDialog()
         }
 
@@ -52,7 +54,7 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
     }
 
     private fun setupSearchView() {
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        viewBinder.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 viewModel.fetchRepositories(query)
                 return true
@@ -63,9 +65,9 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
             }
         })
 
-        val searchEditText: EditText = searchView.findViewById(R.id.search_src_text)
+        val searchEditText: EditText = viewBinder.searchView.findViewById(R.id.search_src_text)
         val searchCloseButton: ImageView =
-            searchView.findViewById(R.id.search_close_btn) as ImageView
+            viewBinder.searchView.findViewById(R.id.search_close_btn) as ImageView
         searchCloseButton.setOnClickListener {
             searchEditText.setText("")
             searchAdapter.swapData(emptyList(), 0)
@@ -75,18 +77,18 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
     private fun setupRecycler() {
         val layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         val dividerItemDecoration = DividerItemDecoration(
-            repositoriesRecycler.context,
+            viewBinder.repositoriesRecycler.context,
             layoutManager.orientation
         )
-        repositoriesRecycler.layoutManager = layoutManager
-        repositoriesRecycler.addItemDecoration(dividerItemDecoration)
+        viewBinder.repositoriesRecycler.layoutManager = layoutManager
+        viewBinder.repositoriesRecycler.addItemDecoration(dividerItemDecoration)
         searchAdapter = SearchAdapter(this)
-        repositoriesRecycler.adapter = searchAdapter
+        viewBinder.repositoriesRecycler.adapter = searchAdapter
     }
 
     @SuppressLint("SetTextI18n")
     private fun updateSortText() {
-        sortByText.text = "Sort by: ${viewModel.selectedSortItem}"
+        viewBinder.sortByText.text = "Sort by: ${viewModel.selectedSortItem}"
     }
 
     private fun showSortDialog() {
@@ -118,13 +120,13 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
             .observe(this, Observer {
                 Timber.d("searchResult: $it")
                 when {
-                    it.isLoading -> progressBar.show()
+                    it.isLoading -> viewBinder.progressBar.show()
                     it.isError -> {
-                        progressBar.hide()
+                        viewBinder.progressBar.hide()
                         UiUtils.handleUiError(this, it.getException(true))
                     }
                     else -> {
-                        progressBar.hide()
+                        viewBinder.progressBar.hide()
                         searchAdapter.swapData(
                             it.data?.allItems ?: emptyList(),
                             it.data?.totalCount ?: 0
@@ -145,7 +147,7 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (progressBar.isVisible) {
+        if (viewBinder.progressBar.isVisible) {
             return false
         }
         return when (item.itemId) {

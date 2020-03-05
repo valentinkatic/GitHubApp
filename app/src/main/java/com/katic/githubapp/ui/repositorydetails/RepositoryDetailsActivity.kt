@@ -9,12 +9,11 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import com.katic.api.model.Repository
-import com.katic.githubapp.R
 import com.katic.githubapp.appComponent
+import com.katic.githubapp.databinding.ActivityRepositoryDetailsBinding
 import com.katic.githubapp.ui.userdetails.UserDetailsActivity
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
-import kotlinx.android.synthetic.main.activity_repository_details.*
 import timber.log.Timber
 import java.util.concurrent.Callable
 
@@ -26,6 +25,7 @@ class RepositoryDetailsActivity : AppCompatActivity() {
         const val EXTRA_REPO_ID = "EXTRA_REPO_ID"
     }
 
+    private lateinit var viewBinder: ActivityRepositoryDetailsBinding
     private val viewModel by viewModelProvider {
         RepositoryDetailsViewModel(
             appComponent.apiRepository,
@@ -38,7 +38,8 @@ class RepositoryDetailsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_repository_details)
+        viewBinder = ActivityRepositoryDetailsBinding.inflate(layoutInflater)
+        setContentView(viewBinder.root)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
@@ -50,13 +51,13 @@ class RepositoryDetailsActivity : AppCompatActivity() {
             .observe(this, Observer {
                 Timber.d("repoResult: $it")
                 when {
-                    it.isLoading -> progressBar.show()
+                    it.isLoading -> viewBinder.progressBar.show()
                     it.isError -> {
-                        progressBar.hide()
+                        viewBinder.progressBar.hide()
                         UiUtils.handleUiError(this, it.getException(true))
                     }
                     else -> {
-                        progressBar.hide()
+                        viewBinder.progressBar.hide()
                         repository = it.data
                         setRepositoryInfo()
                     }
@@ -66,19 +67,19 @@ class RepositoryDetailsActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun setRepositoryInfo() {
-        repoTitle.text = repository?.name
-        description.text = repository?.description
-        fullName.text = "Full Name: ${repository?.fullName}"
-        repoId.text = "Repo id: ${repository?.id}"
-        nodeId.text = "Node id: ${repository?.nodeId}"
-        watchers.text = "Watchers: ${repository?.watchersCount}"
-        forks.text = "Forks: ${repository?.forksCount}"
-        issues.text = "Issues: ${repository?.openIssuesCount}"
-        created.text = "Created: ${repository?.created}"
-        updated.text = "Updated: ${repository?.updated}"
-        language.text = "Language: ${repository?.language}"
+        viewBinder.repoTitle.text = repository?.name
+        viewBinder.description.text = repository?.description
+        viewBinder.fullName.text = "Full Name: ${repository?.fullName}"
+        viewBinder.repoId.text = "Repo id: ${repository?.id}"
+        viewBinder.nodeId.text = "Node id: ${repository?.nodeId}"
+        viewBinder.watchers.text = "Watchers: ${repository?.watchersCount}"
+        viewBinder.forks.text = "Forks: ${repository?.forksCount}"
+        viewBinder.issues.text = "Issues: ${repository?.openIssuesCount}"
+        viewBinder.created.text = "Created: ${repository?.created}"
+        viewBinder.updated.text = "Updated: ${repository?.updated}"
+        viewBinder.language.text = "Language: ${repository?.language}"
 
-        owner.text = UiUtils.getSpannableString(
+        viewBinder.owner.text = UiUtils.getSpannableString(
             "Owner: ",
             repository?.owner?.login ?: "",
             Callable {
@@ -88,18 +89,18 @@ class RepositoryDetailsActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         )
-        owner.movementMethod = LinkMovementMethod.getInstance()
-        owner.highlightColor = Color.TRANSPARENT
+        viewBinder.owner.movementMethod = LinkMovementMethod.getInstance()
+        viewBinder.owner.highlightColor = Color.TRANSPARENT
 
-        url.text = UiUtils.getSpannableString(
+        viewBinder.url.text = UiUtils.getSpannableString(
             "Url: ",
             repository?.url ?: "",
             Callable {
                 UiUtils.openUrl(this, repository!!.url)
             }
         )
-        url.movementMethod = LinkMovementMethod.getInstance()
-        url.highlightColor = Color.TRANSPARENT
+        viewBinder.url.movementMethod = LinkMovementMethod.getInstance()
+        viewBinder.url.highlightColor = Color.TRANSPARENT
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
