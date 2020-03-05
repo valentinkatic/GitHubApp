@@ -27,8 +27,6 @@ class UserDetailsViewModel(
     val userResult: LiveData<LoadingResult<User>> get() = _userResult
     private val _userResult = MutableLiveData<LoadingResult<User>>()
 
-    private var userJob: Job? = null
-
     init {
         if (Log.LOG) log.d("init")
         // load user
@@ -38,9 +36,7 @@ class UserDetailsViewModel(
     private fun fetchUser() {
         if (Log.LOG) log.d("fetchUser: $user")
 
-        userJob?.cancel()
-
-        userJob = viewModelScope.launch {
+        viewModelScope.launch {
             runCatchCancel(
                 run = {
                     val user = (if (user == null) apiRepository.fetchCurrentUser() else apiRepository.fetchUser(user))
@@ -67,10 +63,4 @@ class UserDetailsViewModel(
         cookieManager.flush()
         serviceInterceptor.token = null
     }
-
-    override fun onCleared() {
-        if (Log.LOG) log.d("onCleared")
-        super.onCleared()
-    }
-
 }

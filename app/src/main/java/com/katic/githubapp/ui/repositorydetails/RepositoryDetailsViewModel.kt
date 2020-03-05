@@ -26,8 +26,6 @@ class RepositoryDetailsViewModel(
     val repoResult: LiveData<LoadingResult<Repository>> get() = _repoResult
     private val _repoResult = MutableLiveData<LoadingResult<Repository>>()
 
-    private var repoJob: Job? = null
-
     init {
         if (Log.LOG) log.d("init")
         // load repo
@@ -37,15 +35,13 @@ class RepositoryDetailsViewModel(
     private fun fetchRepo() {
         if (Log.LOG) log.d("fetchRepo: $user, $repo")
 
-        repoJob?.cancel()
-
         if (user == null || repo == null) {
             _repoResult.value =
                 LoadingResult.exception(_repoResult.value, Exception("Missing parameters"))
             return
         }
 
-        repoJob = viewModelScope.launch {
+        viewModelScope.launch {
             runCatchCancel(
                 run = {
                     val repository = apiRepository.fetchRepository(user, repo)
@@ -64,10 +60,4 @@ class RepositoryDetailsViewModel(
             )
         }
     }
-
-    override fun onCleared() {
-        if (Log.LOG) log.d("onCleared")
-        super.onCleared()
-    }
-
 }

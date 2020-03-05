@@ -26,14 +26,10 @@ class LoginViewModel(
     val tokenResult: LiveData<LoadingResult<TokenResponse>> get() = _tokenResult
     private val _tokenResult = MutableLiveData<LoadingResult<TokenResponse>>()
 
-    private var tokenJob: Job? = null
-
     fun fetchToken(code: String) {
         if (Log.LOG) log.d("fetchToken: $code")
 
-        tokenJob?.cancel()
-
-        tokenJob = viewModelScope.launch {
+        viewModelScope.launch {
             runCatchCancel(
                 run = {
                     val tokenResponse = authRepository.fetchToken(

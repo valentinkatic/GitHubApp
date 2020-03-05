@@ -93,10 +93,4 @@ class SearchViewModel(private val apiRepository: ApiRepository) : ViewModel() {
             )
         }
     }
-
-    override fun onCleared() {
-        if (Log.LOG) log.d("onCleared")
-        super.onCleared()
-    }
-
 }
