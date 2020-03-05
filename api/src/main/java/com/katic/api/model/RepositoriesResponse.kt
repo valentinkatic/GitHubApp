@@ -7,5 +7,5 @@ import com.squareup.moshi.JsonClass
 data class RepositoriesResponse(
     @Json(name = "total_count") val totalCount: Int,
     @Json(name = "incomplete_results") val incompleteResults: Boolean,
-    val items: List<Repository> = emptyList()
+    @Json(name = "items") val items: List<Repository> = emptyList()
 )
