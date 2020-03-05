@@ -13,6 +13,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
+import timber.log.Timber
 
 class AppInjector(context: Context) {
 
@@ -36,7 +37,8 @@ class AppInjector(context: Context) {
         val loggingInterceptor = HttpLoggingInterceptor(
             object : HttpLoggingInterceptor.Logger {
                 override fun log(message: String) {
-                    Log.v("http", message)
+                    Timber.tag("http")
+                    Timber.v(message)
                 }
             }
         )

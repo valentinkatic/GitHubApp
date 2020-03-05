@@ -11,18 +11,15 @@ import android.text.Spanned
 import android.text.TextPaint
 import android.text.style.ClickableSpan
 import android.view.View
-import androidx.core.content.ContextCompat.startActivity
-import com.katic.api.log.Log
 import org.json.JSONObject
 import retrofit2.HttpException
+import timber.log.Timber
 import java.util.concurrent.Callable
 
 
 class UiUtils {
 
     companion object {
-        private val log = Log.getLog("UiUtils")
-
         fun handleUiError(
             activity: Activity?,
             throwable: Throwable?
@@ -35,12 +32,12 @@ class UiUtils {
                     val obj = JSONObject(throwable.response()?.errorBody()?.string() ?: "")
                     obj.getString("message")
                 } catch (e: Exception) {
-                    if (Log.LOG) log.e("handleUiError parsing exception", e)
+                    Timber.e(e, "handleUiError parsing exception")
                     "Service error. Please, try again."
                 }
             }
 
-            if (Log.LOG) log.d("displayUiError: dialog")
+            Timber.d("displayUiError: dialog")
 
             val dialog = AlertDialog.Builder(activity)
                 .setTitle("Error")
@@ -50,7 +47,7 @@ class UiUtils {
             try {
                 dialog.show()
             } catch (e: Exception) {
-                if (Log.LOG) log.e("handleUiError", e)
+                Timber.e(e, "handleUiError")
             }
 
         }
@@ -79,7 +76,7 @@ class UiUtils {
         }
 
         fun openUrl(context: Context, url: String) {
-            if (Log.LOG) log.d("openUrl: $url")
+            Timber.d("openUrl: $url")
             var url = url
             if (!url.startsWith("http://") && !url.startsWith("https://")) {
                 url = "http://$url"

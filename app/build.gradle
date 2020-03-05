@@ -49,6 +49,8 @@ dependencies {
     }
     kapt "com.github.bumptech.glide:compiler:${ver.glide}"
 
+    implementation "com.jakewharton.timber:timber:${ver.timber}"
+
     testImplementation "junit:junit:${ver.junit_test}"
 //    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
 //    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

@@ -15,7 +15,6 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.katic.api.log.Log
 import com.katic.api.model.Repository
 import com.katic.api.model.User
 import com.katic.githubapp.R
@@ -26,12 +25,9 @@ import com.katic.githubapp.ui.userdetails.UserDetailsActivity
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
 import kotlinx.android.synthetic.main.activity_search.*
+import timber.log.Timber
 
 class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragment.Listener {
-
-    companion object {
-        private val log = Log.getLog("SearchActivity")
-    }
 
     private val viewModel by viewModelProvider {
         SearchViewModel(appComponent.apiRepository)
@@ -120,7 +116,7 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
     private fun observeViewModel() {
         viewModel.searchResult
             .observe(this, Observer {
-                if (Log.LOG) log.d("searchResult: $it")
+                Timber.d("searchResult: $it")
                 when {
                     it.isLoading -> progressBar.show()
                     it.isError -> {
@@ -172,7 +168,7 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
     //
 
     override fun onRepositorySelected(repository: Repository) {
-        if (Log.LOG) log.d("onRepositorySelected: $repository")
+        Timber.d("onRepositorySelected: $repository")
         val intent = Intent(this, RepositoryDetailsActivity::class.java)
         intent.putExtra(RepositoryDetailsActivity.EXTRA_USER_ID, repository.owner.login)
         intent.putExtra(RepositoryDetailsActivity.EXTRA_REPO_ID, repository.name)
@@ -180,7 +176,7 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
     }
 
     override fun onUserSelected(user: User) {
-        if (Log.LOG) log.d("onUserSelected: $user")
+        Timber.d("onUserSelected: $user")
         val intent = Intent(this, UserDetailsActivity::class.java)
         intent.putExtra(UserDetailsActivity.EXTRA_USER_ID, user.login)
         startActivity(intent)

@@ -10,7 +10,6 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import com.bumptech.glide.request.RequestOptions
-import com.katic.api.log.Log
 import com.katic.api.model.User
 import com.katic.githubapp.R
 import com.katic.githubapp.appComponent
@@ -19,12 +18,12 @@ import com.katic.githubapp.ui.search.SearchActivity
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
 import kotlinx.android.synthetic.main.activity_user_details.*
+import timber.log.Timber
 import java.util.concurrent.Callable
 
 class UserDetailsActivity : AppCompatActivity() {
 
     companion object {
-        private val log = Log.getLog("UserDetailsActivity")
         const val EXTRA_USER_ID = "EXTRA_USER_ID"
     }
 
@@ -50,7 +49,7 @@ class UserDetailsActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.userResult
             .observe(this, Observer {
-                if (Log.LOG) log.d("repoResult: $it")
+                Timber.d("repoResult: $it")
                 when {
                     it.isLoading -> progressBar.show()
                     it.isError -> {

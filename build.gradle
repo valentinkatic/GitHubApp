@@ -20,6 +20,7 @@ buildscript {
         ver.recyclerview = "1.1.0"
 
         ver.glide = "4.11.0"
+        ver.timber = "4.7.1"
 
         ver.rxjava = "2.2.10"
         ver.rxjava_android = "2.1.1"

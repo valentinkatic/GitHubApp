@@ -11,21 +11,17 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Observer
-import com.katic.api.log.Log
 import com.katic.githubapp.R
 import com.katic.githubapp.appComponent
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
 import kotlinx.android.synthetic.main.login_fragment.*
+import timber.log.Timber
 
 class LoginFragment : DialogFragment() {
 
     interface Listener {
         fun onSuccess()
-    }
-
-    companion object {
-        private val log = Log.getLog("LoginFragment")
     }
 
     private val viewModel by viewModelProvider {
@@ -38,7 +34,7 @@ class LoginFragment : DialogFragment() {
     private lateinit var listener: Listener
 
     override fun onAttach(context: Context) {
-        if (Log.LOG) log.v("onAttach: $this")
+        Timber.v("onAttach: $this")
         super.onAttach(context)
         val target = targetFragment
         val parent = parentFragment
@@ -72,10 +68,10 @@ class LoginFragment : DialogFragment() {
 
         webView.webViewClient = object : WebViewClient() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                if (Log.LOG) log.d("onPageStarted: $url")
+                Timber.d("onPageStarted: $url")
                 val code = extractAuthorizationCode(url)
                 if (!code.isNullOrEmpty()) {
-                    if (Log.LOG) log.d("code: $code")
+                    Timber.d("code: $code")
                     viewModel.fetchToken(code)
                 } else {
                     super.onPageStarted(view, url, favicon)
@@ -102,7 +98,7 @@ class LoginFragment : DialogFragment() {
     private fun observeViewModel() {
         viewModel.tokenResult
             .observe(this, Observer {
-                if (Log.LOG) log.d("tokenResult: $it")
+                Timber.d("tokenResult: $it")
                 when {
                     it.isLoading -> progressBar.show()
                     it.isError -> {

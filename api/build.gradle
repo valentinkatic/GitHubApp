@@ -23,15 +23,7 @@ android {
     }
 
     buildTypes {
-        debug {
-            // enable logging (Log.DEBUG and other) flags
-            buildConfigField 'boolean', 'LOG', 'true'
-        }
         release {
-            // disable logging (Log.DEBUG and other) flags
-            // log statements will be stripped out by the compiler
-            buildConfigField 'boolean', 'LOG', 'false'
-
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
