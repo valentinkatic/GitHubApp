@@ -1,35 +1,41 @@
-package com.katic.githubapp
+package com.katic.githubapp.di
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
 import com.katic.api.ApiRepository
 import com.katic.api.ApiService
 import com.katic.api.AuthRepository
 import com.katic.api.AuthService
 import com.katic.githubapp.util.ServiceInterceptor
+import dagger.Module
+import dagger.Provides
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import timber.log.Timber
+import javax.inject.Named
+import javax.inject.Singleton
 
-class AppInjector(context: Context) {
+@Module
+object AppModule {
 
-    companion object {
-        const val BASE_URL = "https://api.github.com"
-        const val BASE_LOGIN_URL = "https://github.com"
-        private const val PREFS_FILENAME = "auth_prefs"
+    @Provides
+    fun provideAuthPrefs(
+        context: Context,
+        @Named("authPrefsFilename") authPrefsFilename: String
+    ): SharedPreferences {
+        return context.getSharedPreferences(authPrefsFilename, Context.MODE_PRIVATE)
     }
 
-    private val authPrefs: SharedPreferences by lazy {
-        context.getSharedPreferences(PREFS_FILENAME, Context.MODE_PRIVATE)
-    }
+    @Provides
+    fun provideServiceInterceptor(authPrefs: SharedPreferences) =
+        ServiceInterceptor(authPrefs)
 
-    val serviceInterceptor: ServiceInterceptor by lazy { ServiceInterceptor(authPrefs) }
-
-    val okHttpClient: OkHttpClient by lazy {
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(serviceInterceptor: ServiceInterceptor): OkHttpClient {
         val clientBuilder = OkHttpClient.Builder()
         clientBuilder.addInterceptor(serviceInterceptor)
 
@@ -46,35 +52,43 @@ class AppInjector(context: Context) {
         clientBuilder.addNetworkInterceptor(loggingInterceptor)
 
         // return
-        clientBuilder.build()
+        return clientBuilder.build()
     }
 
-    val apiService: ApiService by lazy {
+    @Provides
+    fun provideApiService(
+        client: OkHttpClient,
+        @Named("apiBaseUrl") apiBaseUrl: String
+    ): ApiService {
         val retrofit = Retrofit.Builder()
-            .client(okHttpClient)
-            .baseUrl(BASE_URL)
+            .client(client)
+            .baseUrl(apiBaseUrl)
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
-        retrofit.create(ApiService::class.java)
+        return retrofit.create(ApiService::class.java)
     }
 
-    val authService: AuthService by lazy {
+    @Provides
+    fun provideAuthService(
+        client: OkHttpClient,
+        @Named("authBaseUrl") authBaseUrl: String
+    ): AuthService {
         val retrofit = Retrofit.Builder()
-            .client(okHttpClient)
-            .baseUrl(BASE_LOGIN_URL)
+            .client(client)
+            .baseUrl(authBaseUrl)
             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
             .addConverterFactory(MoshiConverterFactory.create())
             .build()
-        retrofit.create(AuthService::class.java)
+        return retrofit.create(AuthService::class.java)
     }
 
-    val apiRepository: ApiRepository by lazy {
+    @Provides
+    fun provideApiRepository(apiService: ApiService) =
         ApiRepository(apiService)
-    }
 
-    val authRepository: AuthRepository by lazy {
+    @Provides
+    fun provideAuthRepository(authService: AuthService) =
         AuthRepository(authService)
-    }
 
 }

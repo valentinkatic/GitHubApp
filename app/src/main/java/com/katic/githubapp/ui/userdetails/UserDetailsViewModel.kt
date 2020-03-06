@@ -12,11 +12,12 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
+import java.lang.Exception
+import javax.inject.Inject
 
-class UserDetailsViewModel(
+class UserDetailsViewModel @Inject constructor(
     private val apiRepository: ApiRepository,
-    private val serviceInterceptor: ServiceInterceptor,
-    private val user: String?
+    private val serviceInterceptor: ServiceInterceptor
 ) : ViewModel() {
 
     val userResult: LiveData<LoadingResult<User>> get() = _userResult
@@ -24,13 +25,7 @@ class UserDetailsViewModel(
 
     private var userDisposable: Disposable? = null
 
-    init {
-        Timber.d("init")
-        // load user
-        fetchUser()
-    }
-
-    private fun fetchUser() {
+    fun fetchUser(user: String?) {
         Timber.d("fetchUser: $user")
 
         userDisposable?.dispose()

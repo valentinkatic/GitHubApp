@@ -13,7 +13,7 @@ import com.katic.api.model.User
 import com.katic.githubapp.R
 import com.katic.githubapp.databinding.LoadingItemBinding
 import com.katic.githubapp.databinding.RepositoryItemBinding
-import com.katic.githubapp.ui.common.GlideApp
+import com.katic.githubapp.di.GlideApp
 
 class SearchAdapter(val listener: Listener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 

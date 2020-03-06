@@ -11,11 +11,13 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
 import java.lang.Exception
+import javax.inject.Inject
+import javax.inject.Named
 
-class RepositoryDetailsViewModel(
+class RepositoryDetailsViewModel @Inject constructor(
     private val apiRepository: ApiRepository,
-    private val user: String?,
-    private val repo: String?
+    @Named("user") private val user: String?,
+    @Named("repo") private val repo: String?
 ) : ViewModel() {
 
     val repoResult: LiveData<LoadingResult<Repository>> get() = _repoResult

@@ -14,7 +14,7 @@ import com.katic.api.model.User
 import com.katic.githubapp.R
 import com.katic.githubapp.appComponent
 import com.katic.githubapp.databinding.ActivityUserDetailsBinding
-import com.katic.githubapp.ui.common.GlideApp
+import com.katic.githubapp.di.GlideApp
 import com.katic.githubapp.ui.search.SearchActivity
 import com.katic.githubapp.util.UiUtils
 import com.katic.githubapp.util.viewModelProvider
@@ -29,11 +29,7 @@ class UserDetailsActivity : AppCompatActivity() {
 
     private lateinit var viewBinder: ActivityUserDetailsBinding
     private val viewModel by viewModelProvider {
-        UserDetailsViewModel(
-            appComponent.apiRepository,
-            appComponent.serviceInterceptor,
-            intent.getStringExtra(EXTRA_USER_ID)
-        )
+        appComponent.userDetailsViewModel
     }
 
     private var user: User? = null
@@ -45,6 +41,7 @@ class UserDetailsActivity : AppCompatActivity() {
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        viewModel.fetchUser(intent.getStringExtra(EXTRA_USER_ID))
         observeViewModel()
     }
 

@@ -10,8 +10,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import timber.log.Timber
+import javax.inject.Inject
 
-class SearchViewModel(private val apiRepository: ApiRepository) : ViewModel() {
+class SearchViewModel @Inject constructor(private val apiRepository: ApiRepository) : ViewModel() {
 
     /** Result of repository search. */
     val searchResult: LiveData<LoadingResult<ApiRepository.RepositoriesPaginator>> get() = _searchResult

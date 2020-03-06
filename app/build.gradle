@@ -56,6 +56,8 @@ dependencies {
     kapt "com.github.bumptech.glide:compiler:${ver.glide}"
 
     implementation "com.jakewharton.timber:timber:${ver.timber}"
+    implementation "com.google.dagger:dagger:${ver.dagger}"
+    kapt "com.google.dagger:dagger-compiler:${ver.dagger}"
 
     testImplementation "junit:junit:${ver.junit_test}"
 //    androidTestImplementation 'androidx.test.ext:junit:1.1.1'

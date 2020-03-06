@@ -31,7 +31,7 @@ class SearchActivity : AppCompatActivity(), SearchAdapter.Listener, LoginFragmen
 
     private lateinit var viewBinder: ActivitySearchBinding
     private val viewModel by viewModelProvider {
-        SearchViewModel(appComponent.apiRepository)
+        appComponent.searchViewModel
     }
 
     private lateinit var searchAdapter: SearchAdapter

@@ -27,11 +27,10 @@ class RepositoryDetailsActivity : AppCompatActivity() {
 
     private lateinit var viewBinder: ActivityRepositoryDetailsBinding
     private val viewModel by viewModelProvider {
-        RepositoryDetailsViewModel(
-            appComponent.apiRepository,
-            intent.getStringExtra(EXTRA_USER_ID),
-            intent.getStringExtra(EXTRA_REPO_ID)
-        )
+        appComponent.repositoryDetailsSubComponentFactory.create(
+            user = intent.getStringExtra(EXTRA_USER_ID),
+            repo = intent.getStringExtra(EXTRA_REPO_ID)
+        ).repositoryDetailsViewModel
     }
 
     private var repository: Repository? = null

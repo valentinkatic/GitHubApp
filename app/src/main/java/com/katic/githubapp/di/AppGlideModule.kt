@@ -1,4 +1,4 @@
-package com.katic.githubapp.ui.common
+package com.katic.githubapp.di
 
 import android.content.Context
 import com.bumptech.glide.Glide
